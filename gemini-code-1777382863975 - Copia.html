@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summer Camp 2026 - Official Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f0faff;
+            --celeste: #87ceeb;
+            --celeste-dark: #0096d6;
+            --bianco: #ffffff;
+            --testo: #0c4a6e;
+            --success: #4ade80;
+            --gray: #f1f5f9;
+            --accent: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+        body { background: var(--bg); color: var(--testo); height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+
+        /* --- STEP 1: UNIVERSO --- */
+        .universe { position: relative; width: 550px; height: 550px; display: flex; justify-content: center; align-items: center; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .universe.blur { filter: blur(10px); transform: scale(0.95); pointer-events: none; }
+        .universe.hide { opacity: 0; transform: scale(1.2); pointer-events: none; }
+
+        .camp-core { width: 140px; height: 140px; background: var(--bianco); border: 4px solid var(--celeste); border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 5; box-shadow: 0 10px 40px rgba(135, 206, 235, 0.4); font-weight: 600; text-align: center; transition: 0.5s; }
+        .camp-core.ready { background: var(--success); border-color: #2fb365; color: white; cursor: pointer; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        .planet { position: absolute; background: var(--bianco); border: 2px solid var(--celeste); padding: 12px 22px; border-radius: 30px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: 0.3s; z-index: 20; white-space: nowrap; }
+        .planet.completed { border-color: var(--success); background: var(--success); color: white; }
+        .orbit { position: absolute; border-radius: 50%; border: 1.5px dashed rgba(135, 206, 235, 0.5); animation: rotate 60s linear infinite; pointer-events: none; }
+        .orbit-1 { width: 320px; height: 320px; }
+        .orbit-2 { width: 520px; height: 520px; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* --- MODALE --- */
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12, 74, 110, 0.15); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 100; }
+        .modal { background: var(--bianco); padding: 30px; border-radius: 32px; max-width: 400px; width: 90%; text-align: center; }
+        .option-item { padding: 15px; border: 2px solid #f1f5f9; border-radius: 15px; cursor: pointer; font-weight: 500; margin-bottom: 8px; }
+        .option-item.selected { border-color: var(--celeste); background: #f0f9ff; }
+        .input-box { display: none; margin-top: 15px; padding: 15px; width: 100%; border: 2px solid var(--celeste); border-radius: 12px; outline: none; font-size: 1rem; }
+
+        /* --- STEP 2 & 3: DASHBOARDS --- */
+        .screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 200; display: none; flex-direction: column; align-items: center; padding: 40px 20px; overflow-y: auto; animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .dash-container { width: 100%; max-width: 600px; text-align: center; }
+        .accordion-item { background: var(--bianco); border-radius: 20px; margin-bottom: 15px; border: 1px solid var(--gray); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .accordion-header { padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+        .accordion-content { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: #fafafa; text-align: left; }
+        .accordion-item.active .accordion-content { max-height: 600px; padding: 20px; border-top: 1px solid var(--gray); }
+
+        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .btn-action { background: var(--celeste-dark); color: white; border: none; padding: 18px 40px; border-radius: 50px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; font-size: 1rem; transition: 0.3s; }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,150,214,0.3); }
+
+        /* Success Message */
+        #success-msg { display: none; color: var(--success); font-weight: 600; margin-top: 20px; padding: 20px; background: #ecfdf5; border-radius: 15px; border: 1px solid var(--success); }
+    </style>
+</head>
+<body>
+
+    <div class="universe" id="universe">
+        <div id="main-core" class="camp-core" onclick="goToStep2()">SUMMER CAMP<br>2026</div>
+        <div id="p-anagrafica" class="planet" style="top: 15%; left: 50%; transform: translate(-50%, -50%);" onclick="openPanel('anagrafica')">👤 Profilo</div>
+        <div id="p-sport" class="planet" style="bottom: 15%; left: 50%; transform: translate(-50%, 50%);" onclick="openPanel('sport')">⚽ Attività</div>
+        <div id="p-pasti" class="planet" style="top: 50%; left: 0; transform: translate(-10%, -50%);" onclick="openPanel('pasti')">🍎 Menu</div>
+        <div id="p-tenda" class="planet" style="top: 50%; right: 0; transform: translate(10%, -50%);" onclick="openPanel('tenda')">⛺ Alloggio</div>
+        <div class="orbit orbit-1"></div><div class="orbit orbit-2"></div>
+    </div>
+
+    <div id="overlay">
+        <div class="modal">
+            <h2 id="modal-title"></h2>
+            <div id="options-list" style="margin-top: 15px;"></div>
+            <input type="text" id="custom-text" class="input-box" placeholder="Specifica intolleranza...">
+            <button id="confirm-btn" class="btn-action" onclick="handleConfirm()" disabled>Conferma</button>
+        </div>
+    </div>
+
+    <div id="screen-step2" class="screen-overlay">
+        <h2 style="font-size: 2rem; margin-bottom: 10px;">Setup 16+ Experience</h2>
+        <p style="margin-bottom: 30px; color: #64748b;">Gestisci extra e modalità di partecipazione</p>
+        <div class="dash-container">
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)"><span>🌍 Escursioni & Uscite</span><span>▼</span></div>
+                <div class="accordion-content">
+                    <div class="row"><label><input type="checkbox"> Escursione Montagna</label><span style="color:var(--accent); font-weight:bold;">€25</span></div>
+                    <div class="row"><label><input type="checkbox"> Mare sotto le stelle</label><span style="color:var(--accent); font-weight:bold;">€15</span></div>
+                    <div class="row"><label><input type="checkbox"> Trekking Notturno</label><span style="color:var(--accent); font-weight:bold;">€30</span></div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)"><span>🎓 Programma Tutor</span><span>▼</span></div>
+                <div class="accordion-content">
+                    <p style="font-size: 0.85rem; margin-bottom:10px;">Ottieni crediti scolastici affiancando lo staff.</p>
+                    <div class="row"><label><input type="radio" name="st"> Junior Staff Apprentice</label><span>GRATIS</span></div>
+                    <div class="row"><label><input type="radio" name="st" checked> Partecipante Standard</label><span>-</span></div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)"><span>💳 Pagamento</span><span>▼</span></div>
+                <div class="accordion-content">
+                    <div class="row"><label><input type="radio" name="py"> Acconto (30%)</label><span>Check</span></div>
+                    <div class="row"><label><input type="radio" name="py"> Saldo Totale (-10%)</label><span>Promo</span></div>
+                </div>
+            </div>
+            <button class="btn-action" style="background:var(--success); margin-top:20px;" onclick="goToStep3()">FINALIZZA ISCRIZIONE</button>
+        </div>
+    </div>
+
+    <div id="screen-step3" class="screen-overlay">
+        <div class="dash-container" style="background: white; padding: 40px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+            <h2 style="font-size: 1.8rem; margin-bottom: 10px;">Ultimo Passaggio! 📧</h2>
+            <p style="color: #64748b; margin-bottom: 25px;">Inserisci la tua email per ricevere i documenti e i dettagli del pagamento.</p>
+            
+            <input type="email" id="user-email" class="input-box" style="display:block; margin-bottom: 20px; border: 2px solid var(--gray);" placeholder="la-tua-email@esempio.it">
+            
+            <button class="btn-action" id="btn-send" onclick="sendFinal()">INVIA DOMANDA</button>
+
+            <div id="success-msg">
+                🎉 Domanda inviata con successo!<br>
+                <span style="font-size: 0.9rem; font-weight: 400; color: #065f46;">Abbiamo inviato i dettagli e il riepilogo delle tue scelte all'indirizzo email fornito. Controlla anche la cartella Spam!</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const config = {
+            anagrafica: ["Solo io", "Gruppo Amici"],
+            sport: ["Calcio", "Basket", "Padel", "Tennis"],
+            pasti: ["Standard", "Vegano", "Intolleranze"],
+            tenda: ["Tenda Eco", "Bungalow"]
+        };
+
+        let currentCat = "";
+        let currentSelection = "";
+
+        // STEP 1 LOGIC
+        function openPanel(cat) {
+            currentCat = cat;
+            const list = document.getElementById('options-list');
+            const input = document.getElementById('custom-text');
+            list.innerHTML = "";
+            input.style.display = "none";
+            input.value = "";
+            document.getElementById('modal-title').innerText = "Scegli " + cat.toUpperCase();
+            document.getElementById('confirm-btn').disabled = true;
+
+            config[cat].forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'option-item';
+                div.innerText = opt;
+                div.onclick = () => {
+                    Array.from(list.children).forEach(c => c.classList.remove('selected'));
+                    div.classList.add('selected');
+                    currentSelection = opt;
+                    document.getElementById('confirm-btn').disabled = false;
+                    input.style.display = (opt === "Intolleranze") ? "block" : "none";
+                };
+                list.appendChild(div);
+            });
+            document.getElementById('overlay').style.display = 'flex';
+            document.getElementById('universe').classList.add('blur');
+        }
+
+        function handleConfirm() {
+            const planet = document.getElementById('p-' + currentCat);
+            const inputVal = document.getElementById('custom-text').value;
+            let finalName = (currentSelection === "Intolleranze" && inputVal) ? inputVal : currentSelection;
+            
+            planet.innerText = (finalName.length > 15) ? finalName.substring(0,12) + "..." : finalName;
+            planet.classList.add('completed');
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('universe').classList.remove('blur');
+
+            if(document.querySelectorAll('.planet.completed').length === 4) {
+                const core = document.getElementById('main-core');
+                core.classList.add('ready');
+                core.innerHTML = "PRENOTA<br>ORA";
+            }
+        }
+
+        // NAVIGAZIONE
+        function goToStep2() {
+            if(document.getElementById('main-core').classList.contains('ready')) {
+                document.getElementById('universe').classList.add('hide');
+                setTimeout(() => { document.getElementById('screen-step2').style.display = 'flex'; }, 400);
+            }
+        }
+
+        function goToStep3() {
+            document.getElementById('screen-step2').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('screen-step2').style.display = 'none';
+                document.getElementById('screen-step3').style.display = 'flex';
+            }, 300);
+        }
+
+        function sendFinal() {
+            const email = document.getElementById('user-email').value;
+            if(!email.includes('@')) {
+                alert("Inserisci un'email valida!");
+                return;
+            }
+            document.getElementById('btn-send').style.display = 'none';
+            document.getElementById('user-email').disabled = true;
+            document.getElementById('success-msg').style.display = 'block';
+        }
+
+        function toggleAccordion(header) {
+            const item = header.parentElement;
+            const wasActive = item.classList.contains('active');
+            document.querySelectorAll('.accordion-item').forEach(el => el.classList.remove('active'));
+            if (!wasActive) item.classList.add('active');
+        }
+    </script>
+</body>
+</html>
